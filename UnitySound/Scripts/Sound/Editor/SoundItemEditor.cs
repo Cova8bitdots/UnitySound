@@ -1,11 +1,13 @@
 ﻿using UnityEngine;
 using UnityEditor;
 
-namespace CovaTech.EditorTool
-{
-    using CovaTech.UnitySound;
+using CovaTech.Lib;
+using CovaTech.UnitySound;
 
-    [CustomEditor(typeof(SoundItem))]
+namespace CovaTech.UnitySound.EditorTool
+{
+
+    [CustomEditor(typeof(CovaTech.UnitySound.SoundItem))]
     public class SoundItemEditor : Editor
     {
 

@@ -3,10 +3,12 @@ using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.Audio;
 
-namespace CovaTech.UnitySound
-{   
+using CovaTech.Lib;
 
-    public class SoundObjectPool : CovaTech.CoreSystem.ObjectPool<SoundItem>
+namespace CovaTech.UnitySound
+{
+
+    public class SoundObjectPool : CovaTech.Lib.ObjectPool<SoundItem>
     {
 
         //-----------------------------------------------------

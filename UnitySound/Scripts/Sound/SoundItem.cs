@@ -9,7 +9,7 @@ using UniRx;
 
 namespace CovaTech.UnitySound
 {
-    using CovaTech.CoreSystem;
+    using CovaTech.Lib;
 
     [RequireComponent(typeof(AudioSource))]
     public class SoundItem : MonoBehaviour, IPoolItem
