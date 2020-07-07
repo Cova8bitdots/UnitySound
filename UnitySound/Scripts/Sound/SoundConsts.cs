@@ -18,7 +18,35 @@ namespace CovaTech.UnitySound
 
         #endregion //) ===== GENERAL =====
         
-        
+        //------------------------------------------------------------------
+        // ObjectPool
+        //------------------------------------------------------------------
+        #region  ===== GENERAL =====
+
+        /// <summary>
+        /// BGM のプールサイズ
+        /// 単純にBGMのみであればクロスフェード分も合わせて2
+        /// マップ上に特定のBGM再生音源がある場合はその数に応じて増やす形
+        /// (出来れば4つ程度をうまいこと使い回して表現した方がいい)
+        /// </summary>
+        public const int DEFAULT_BGM_POOL_SIZE = 4;
+
+        /// <summary>
+        /// SEのプールサイズ
+        /// 環境音なども含めるとある程度同時再生する可能性があるため8~32あたりで設定したいところ
+        /// </summary>
+        public const int DEFAULT_SE_POOL_SIZE = 8;
+
+        /// <summary>
+        /// Voiceのプールサイズ
+        /// ボイスパートとかで「声」に限定してエフェクトかける場合などで使用
+        /// 最悪SE側に落とし込んでも良い
+        /// 3Dアバターで動く場合はPC数分用意しても良いかもしれない
+        /// </summary>
+        public const int DEFAULT_VOICE_POOL_SIZE = 2;
+
+        #endregion //) ===== GENERAL =====
+
     }
 
     /// <summary>

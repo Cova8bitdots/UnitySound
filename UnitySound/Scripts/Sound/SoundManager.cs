@@ -10,19 +10,69 @@ namespace CovaTech.UnitySound
     public class SoundManager : MonoBehaviour, IAudioPlayer, IVolumeController
     {
         //------------------------------------------------------------------
-        // メンバ変数
+        // 定数関連
+        //------------------------------------------------------------------
+        #region  ===== CONSTS =====
+        private static readonly string BGM_ITEM_NAME_PREFIX = "BGM_";
+        private static readonly string SE_ITEM_NAME_PREFIX = "SE_";
+        private static readonly string VOICE_ITEM_NAME_PREFIX = "VOICE_";
+
+        #endregion //) ===== CONSTS =====
+
+        //------------------------------------------------------------------
+        // メンバ変数関連
         //------------------------------------------------------------------
         #region  ===== MEMBER_VARIABLES =====
 
+        [Header("AudioMixer設定")]
         [SerializeField]
         private AudioMixer m_mixer = null;
-        [SerializeField]
+        [SerializeField, EnumLabel(typeof(SOUND_CATEGORY))]
         private AudioMixerGroup[] m_mixerGroups = null;
 
+        [Header("サウンドItem")]
+        [SerializeField, Tooltip("オブジェクトプールで管理するアイテム")]
+        private SoundItem m_soundItemsPrefab = null;
+
+        /* 各モジュール */
         private IVolumeController m_volumeCtrl = null;
+        private SoundObjectPool m_bgmPool = null;
+        private SoundObjectPool m_sePool = null;
+        private SoundObjectPool m_voicePool = null;
+
+        
         #endregion //) ===== MEMBER_VARIABLES =====
         
 
+        //-----------------------------------------------------
+        // 初期化
+        //-----------------------------------------------------
+        #region ===== INITIALIZE =====
+
+        private bool InitModule()
+        {
+            Debug.Assert(m_mixer != null );
+            if( m_mixer == null )
+            {
+                return false;
+            }
+            m_volumeCtrl = new VolumeController( m_mixer );
+
+            Debug.Assert(m_soundItemsPrefab != null );
+            if( m_soundItemsPrefab == null )
+            {
+                return false;
+            }
+            m_bgmPool = new SoundObjectPool();
+            m_bgmPool.Init( m_soundItemsPrefab, this.transform, BGM_ITEM_NAME_PREFIX, SoundConsts.DEFAULT_BGM_POOL_SIZE );
+            m_sePool = new SoundObjectPool();
+            m_sePool.Init( m_soundItemsPrefab, this.transform, SE_ITEM_NAME_PREFIX, SoundConsts.DEFAULT_SE_POOL_SIZE );
+            m_voicePool = new SoundObjectPool();
+            m_voicePool.Init( m_soundItemsPrefab, this.transform, VOICE_ITEM_NAME_PREFIX, SoundConsts.DEFAULT_VOICE_POOL_SIZE );
+            return true;
+        }
+
+        #endregion //) ===== INITIALIZE =====
 
 
         //-----------------------------------------------------
