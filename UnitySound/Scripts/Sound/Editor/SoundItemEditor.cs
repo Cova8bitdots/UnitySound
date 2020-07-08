@@ -2,31 +2,15 @@
 using UnityEditor;
 
 using CovaTech.Lib;
+using CovaTech.EditorTool;
 using CovaTech.UnitySound;
 
 namespace CovaTech.UnitySound.EditorTool
 {
 
     [CustomEditor(typeof(CovaTech.UnitySound.SoundItem))]
-    public class SoundItemEditor : Editor
+    public class SoundItemEditor : EditorBase
     {
-
-        public void OnEnable()
-        {
-            EditorApplication.update += EditorUpdateSequence;
-        }
-
-        public void OnDisable()
-        {
-            EditorApplication.update -= EditorUpdateSequence;
-
-        }
-
-        void EditorUpdateSequence()
-        {
-            Repaint();
-        }
-
         public override void OnInspectorGUI()
         {
             base.OnInspectorGUI();
