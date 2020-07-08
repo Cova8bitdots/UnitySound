@@ -21,7 +21,7 @@ namespace CovaTech.UnitySound
         //------------------------------------------------------------------
         // ObjectPool
         //------------------------------------------------------------------
-        #region  ===== GENERAL =====
+        #region  ===== OBJECT_POOL =====
 
         /// <summary>
         /// BGM のプールサイズ
@@ -45,8 +45,20 @@ namespace CovaTech.UnitySound
         /// </summary>
         public const int DEFAULT_VOICE_POOL_SIZE = 2;
 
-        #endregion //) ===== GENERAL =====
+        #endregion //) ===== OBJECT_POOL =====
 
+        //------------------------------------------------------------------
+        // Cache
+        //------------------------------------------------------------------
+        #region  ===== CACHE =====
+
+        /// <summary>
+        /// ロードしたアセットのキャッシュサイズ
+        /// </summary>
+        public const int DEFAULT_CACHE_SIZE = 16;
+
+
+        #endregion //) ===== CACHE =====
     }
 
     /// <summary>

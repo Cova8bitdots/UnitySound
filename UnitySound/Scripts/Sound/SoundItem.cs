@@ -1,6 +1,8 @@
 ﻿using System;
 using System.Collections;
 using System.Collections.Generic;
+using System.Threading;
+
 using UnityEngine;
 using UnityEngine.Audio;
 
@@ -183,16 +185,17 @@ namespace CovaTech.UnitySound
                 .Where(_ => !IsPaused && !IsPlaying )
                 .Subscribe(_ =>
                 {
-                    Stop(_isForceStop: true).Forget(e => Debug.LogError(e.Message));
+                    Stop(_isForceStop: true, _token: new CancellationToken() ).Forget(e => Debug.LogError(e.Message));
                 }).AddTo(m_disposable);
             }
         }
         /// <summary>
         /// 再生停止
         /// </summary>
-        /// <param name="_fadeOutDuration">停止までのFadeout時間[sec]</param>
         /// <param name="_isForceStop">強制停止フラグ</param>
-        public async UniTask Stop(float _fadeOutDuration = DEFAULT_FADEOUT_TIME, bool _isForceStop = false)
+        /// <param name="_token">Cancel 用Token</param>
+        /// <param name="_fadeOutDuration">停止までのFadeout時間[sec]</param>
+        public async UniTask Stop( bool _isForceStop,  CancellationToken _token, float _fadeOutDuration = DEFAULT_FADEOUT_TIME)
         {
             if( _isForceStop)
             {
@@ -310,7 +313,7 @@ namespace CovaTech.UnitySound
             {
                 return false;
             }
-            Stop(_isForceStop: _forceDisable).Forget(e => Debug.LogError(e.Message)) ;
+            Stop(_isForceStop: _forceDisable, _token: new CancellationToken() ).Forget(e => Debug.LogError(e.Message)) ;
 
             return true;
         }
