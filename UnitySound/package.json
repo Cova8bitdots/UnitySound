@@ -1,13 +1,13 @@
 {
-  "name": "com.covatech.unitysound",
+  "name": "dev.covatech.unitysound",
   "displayName": "CovaTech.UnitySound",
   "version": "0.1.0",
   "unity": "2019.4",
-  "description": "SoundManagementSystem for Unity",
+  "description": "Sound Management System for Unity",
   "dependencies": {
-    "com.cysharp.unitask": "https://github.com/Cysharp/UniTask.git?path=src/UniTask/Assets/Plugins/UniTask",
-    "com.neuecc.unirx": "https://github.com/neuecc/UniRx.git?path=Assets/Plugins/UniRx/Scripts",
-    "com.covatech.editortool-extention" : "https://github.com/Cova8bitdots/UnityEditorToolExtention.git?path=CovaTechLib"
+    "com.cysharp.unitask": "2.0.31",
+    "com.neuecc.unirx": "7.0.1",
+    "dev.covatech.editortool-extention" : "0.1.1"
   },
   "author": {
     "name": "Cova 8bitdots",
