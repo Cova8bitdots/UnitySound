@@ -5,9 +5,6 @@
   "unity": "2019.4",
   "description": "Sound Management System for Unity",
   "dependencies": {
-    "com.cysharp.unitask": "2.0.31",
-    "com.neuecc.unirx": "7.0.1",
-    "dev.covatech.editortool-extention" : "0.1.1"
   },
   "author": {
     "name": "Cova 8bitdots",
