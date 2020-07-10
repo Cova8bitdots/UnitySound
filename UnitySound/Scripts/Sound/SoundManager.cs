@@ -12,7 +12,7 @@ namespace CovaTech.UnitySound
     /// <summary>
     /// サウンド管理クラス
     /// </summary>
-    public class SoundManager : MonoBehaviour, IAudioPlayer, IVolumeController
+    public class SoundManager : MonoBehaviour, IAudioPlayer, IVolumeController, IMixerEffectController
     {
         //------------------------------------------------------------------
         // 定数関連
@@ -55,8 +55,15 @@ namespace CovaTech.UnitySound
         // 初期化
         //-----------------------------------------------------
         #region ===== INITIALIZE =====
-
-        private bool InitModule()
+        /// <summary>
+        /// 初期化メソッド
+        /// ※Awake/Start だと実行順管理がしづらいので外部メソッド経由で叩かせる
+        /// </summary>
+        public void Initialize()
+        {
+            InitModules();
+        }
+        private bool InitModules()
         {
             Debug.Assert(m_mixer != null );
             if( m_mixer == null )
@@ -373,5 +380,33 @@ namespace CovaTech.UnitySound
             }
             return m_mixerGroups[(int)_category];
         }
+
+        //------------------------------------------------------------------
+        // IMixerEffectController
+        //------------------------------------------------------------------
+        #region  ===== IMixerEffectController =====
+
+        /// <summary>
+        /// LPF のカットオフ周波数設定
+        /// </summary>
+        /// <param name="_category">対象カテゴリ</param>
+        /// <param name="normalizedFreq">正規化周波数</param>
+        void IMixerEffectController.SetLowPassFilter(SOUND_CATEGORY _category, float normalizedFreq )
+        {
+            m_effectCtrl?.SetLowPassFilter(_category, normalizedFreq);
+        }
+
+        /// <summary>
+        /// HPF のカットオフ周波数設定
+        /// </summary>
+        /// <param name="_category">対象カテゴリ</param>
+        /// <param name="normalizedFreq">正規化周波数</param>
+        void IMixerEffectController.SetHighPassFilter(SOUND_CATEGORY _category,  float normalizedFreq )
+        {
+            m_effectCtrl?.SetHighPassFilter(_category, normalizedFreq);
+        }
+
+        #endregion //) ===== IMixerEffectController =====
+    }
     }
 }
