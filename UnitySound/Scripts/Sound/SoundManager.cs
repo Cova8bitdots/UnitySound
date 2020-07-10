@@ -408,5 +408,4 @@ namespace CovaTech.UnitySound
 
         #endregion //) ===== IMixerEffectController =====
     }
-    }
 }
