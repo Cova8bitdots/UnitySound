@@ -47,6 +47,7 @@ namespace CovaTech.UnitySound
 
         private SoundAssetLoader m_assetLoader =null;
         
+        private IMixerEffectController m_effectCtrl = null;
         #endregion //) ===== MEMBER_VARIABLES =====
         
 
@@ -63,6 +64,7 @@ namespace CovaTech.UnitySound
                 return false;
             }
             m_volumeCtrl = new VolumeController( m_mixer );
+            m_effectCtrl = new AudioMixerEffectController( m_mixer);
 
             Debug.Assert(m_soundItemsPrefab != null );
             if( m_soundItemsPrefab == null )
@@ -78,6 +80,7 @@ namespace CovaTech.UnitySound
 
 
             m_assetLoader = new SoundAssetLoader();
+
             return true;
         }
 
