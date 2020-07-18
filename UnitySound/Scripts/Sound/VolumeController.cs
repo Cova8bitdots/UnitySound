@@ -158,7 +158,7 @@ namespace CovaTech.UnitySound
         private float deg2db(float _volume )
         {
             float v = Mathf.Clamp(_volume, MIN_VOLUME_DEG, MAX_VOLUME_DEG);
-            return 10.0f * Mathf.Log10(v);
+            return 20.0f * Mathf.Log10(v);
         }
 
         /// <summary>
@@ -173,7 +173,7 @@ namespace CovaTech.UnitySound
                 return 0.0f;
             }
             float v = Mathf.Clamp(_volume, MIN_VOLUME_DB, MAX_VOLUME_DB) / 10.0f;
-            return Mathf.Clamp( Mathf.Pow( 10.0f, v), MIN_VOLUME_DEG, MAX_VOLUME_DEG);
+            return Mathf.Clamp( Mathf.Pow( 10.0f, v/ 20.0f), MIN_VOLUME_DEG, MAX_VOLUME_DEG);
         }
     }
 }
