@@ -250,17 +250,22 @@ namespace CovaTech.UnitySound
         /// <summary>
         /// SE再生
         /// </summary>
-        /// <param name="_seId">SEID</param>
-        /// <param name="_volume">volume [0, 1]</param>
+        /// <param name="_param">再生に必要なパラメータ</param>
         /// <param name="_isLoop">Is LoopSound?</param>
         /// <returns></returns>
-        async UniTask<int> ISePlayer.PlaySe( int _seId, float _volume, bool _isLoop , CancellationToken _token)
+        async UniTask<int> ISePlayer.PlaySe( SeParam _param, CancellationToken _token)
         {
+            Debug.Assert( _param.IsValid() );
+            if( !_param.IsValid() )
+            {
+                return SoundConsts.INVALID_HANDLER; 
+            }
+
             if( m_sePool == null )
             {
                 return SoundConsts.INVALID_HANDLER;
             }
-            int handler = await (this as ISePlayer).PrewarmSE( _seId, _isLoop, _token);
+            int handler = await (this as ISePlayer).PrewarmSE( _param, _token);
             if( handler == SoundConsts.INVALID_HANDLER )
             {
                 return handler;
@@ -272,7 +277,7 @@ namespace CovaTech.UnitySound
                 return SoundConsts.INVALID_HANDLER;
             }
 
-            item.Play( _volume);
+            item.Play( _param.Volume);
             return handler;
         }
 
@@ -285,7 +290,10 @@ namespace CovaTech.UnitySound
         /// <returns></returns>
         void ISePlayer.PlayOneShotSE( int _seId, float _volume)
         {
-            (this as ISePlayer).PlaySe( _seId, _volume, _isLoop:false, new CancellationToken() ).Forget( e => Debug.LogError( e.Message));
+            var param = new SeParam();
+            param.SetId( _seId);
+            param.SetVolume( _volume);
+            (this as ISePlayer).PlaySe(param, new CancellationToken() ).Forget( e => Debug.LogError( e.Message));
         }
 
         /// <summary>
@@ -314,11 +322,10 @@ namespace CovaTech.UnitySound
         /// <summary>
         /// SoundItem で再生準備フェーズまでの事前準備を行う
         /// </summary>
-        /// <param name="_seId"></param>
-        /// <param name="_isLoop"></param>
+        /// <param name="_param">再生に必要なパラメータ</param>
         /// <param name="_token"></param>
         /// <returns></returns>
-        async UniTask<int> ISePlayer.PrewarmSE( int _seId, bool _isLoop, CancellationToken _token)
+        async UniTask<int> ISePlayer.PrewarmSE( SeParam _param, CancellationToken _token)
         {
             Debug.Assert( m_assetLoader != null );
             Debug.Assert( m_sePool != null );
@@ -326,8 +333,13 @@ namespace CovaTech.UnitySound
             {
                 return SoundConsts.INVALID_HANDLER;
             }
+            Debug.Assert( _param.IsValid() );
+            if( !_param.IsValid() )
+            {
+                return SoundConsts.INVALID_HANDLER; 
+            }
 
-            AudioClip clip = await m_assetLoader.LoadSeClip( _seId, _token);
+            AudioClip clip = await m_assetLoader.LoadSeClip( _param.SeId, _token);
             Debug.Assert( clip != null );
             if( _token.IsCancellationRequested || clip == null )
             {
@@ -340,13 +352,16 @@ namespace CovaTech.UnitySound
             {
                 return SoundConsts.INVALID_HANDLER;
             }
-            SOUND_CATEGORY category = GetSeCategory(_seId);
-            bool isReady = item.SetParam(clip, category, GetMixerGroup(category), _isLoop);
+            SOUND_CATEGORY category = GetSeCategory(_param.SeId);
+            bool isReady = item.SetParam(clip, category, GetMixerGroup(category), _param.IsLoop);
             if (!isReady)
             {
                 item.SetDisable();
                 return SoundConsts.INVALID_HANDLER;
             }
+
+            item.SetPosition( _param.Position );
+
             return item.GetHandler();
         }
 
