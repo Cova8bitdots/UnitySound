@@ -15,6 +15,14 @@ namespace CovaTech.UnitySound
         UniTask<int> PlayBgm( BgmParam _param, CancellationToken _token);
 
         /// <summary>
+        /// Prewarm 完了後に呼び出すBGM 再生API
+        /// </summary>
+        /// <param name="_handler">Item のHandler</param>
+        /// <param name="_volume">音量 [0 1]</param>
+        /// <returns>ハンドラ</returns>
+        int PlayBgm( int _handler, float _volume);
+
+        /// <summary>
         /// 指定BGM を停止
         /// </summary>
         /// <param name="_handler">ハンドラID</param>

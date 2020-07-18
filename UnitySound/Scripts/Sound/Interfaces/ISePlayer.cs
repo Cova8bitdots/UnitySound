@@ -15,6 +15,14 @@ namespace CovaTech.UnitySound
         UniTask<int> PlaySe( SeParam _param,  CancellationToken _token);
 
         /// <summary>
+        /// Prewarm 完了後に呼び出すSE 再生API
+        /// </summary>
+        /// <param name="_handler">Item のHandler</param>
+        /// <param name="_volume">音量 [0 1]</param>
+        /// <returns>ハンドラ</returns>
+        int PlaySe( int _handler, float _volume);
+
+        /// <summary>
         /// SE再生(OneShot)
         /// 
         /// </summary>

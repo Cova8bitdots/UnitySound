@@ -146,19 +146,30 @@ namespace CovaTech.UnitySound
             }
 
             int handler = await (this as IBgmPlayer).PrewarmBGM( _param, _token);
-            if( handler == SoundConsts.INVALID_HANDLER )
+            return (this as IBgmPlayer).PlayBgm( handler, _param.Volume);
+        }
+
+        /// <summary>
+        /// Prewarm 完了後に呼び出すBGM 再生API
+        /// </summary>
+        /// <param name="_handler">Item のHandler</param>
+        /// <param name="_volume">音量 [0 1]</param>
+        /// <returns>ハンドラ</returns>
+        int IBgmPlayer.PlayBgm( int _handler, float _volume)
+        {
+            if( _handler == SoundConsts.INVALID_HANDLER )
             {
-                return handler;
+                return _handler;
             }
-            var item = m_bgmPool.GetItem( handler );
+            var item = m_bgmPool.GetItem( _handler );
             Debug.Assert(item != null);
             if (item == null)
             {
                 return SoundConsts.INVALID_HANDLER;
             }
 
-            item.Play( _param.Volume);
-            return handler;
+            item.Play(_volume);
+            return _handler;
         }
 
         /// <summary>
@@ -266,19 +277,30 @@ namespace CovaTech.UnitySound
                 return SoundConsts.INVALID_HANDLER;
             }
             int handler = await (this as ISePlayer).PrewarmSE( _param, _token);
-            if( handler == SoundConsts.INVALID_HANDLER )
+            return (this as ISePlayer).PlaySe( handler, _param.Volume);
+        }
+
+        /// <summary>
+        /// Prewarm 完了後に呼び出すSE 再生API
+        /// </summary>
+        /// <param name="_handler">Item のHandler</param>
+        /// <param name="_volume">音量 [0 1]</param>
+        /// <returns>ハンドラ</returns>
+        int ISePlayer.PlaySe( int _handler, float _volume)
+        {
+            if( _handler == SoundConsts.INVALID_HANDLER )
             {
-                return handler;
+                return _handler;
             }
-            var item = m_sePool.GetItem( handler );
+            var item = m_sePool.GetItem( _handler );
             Debug.Assert(item != null);
             if (item == null)
             {
                 return SoundConsts.INVALID_HANDLER;
             }
 
-            item.Play( _param.Volume);
-            return handler;
+            item.Play( _volume );
+            return _handler;
         }
 
         /// <summary>
