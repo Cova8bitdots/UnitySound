@@ -126,6 +126,15 @@ namespace CovaTech.UnitySound
             return true;
         }
 
+        /// <summary>
+        /// Objectの位置を設定(World座標)
+        /// </summary>
+        /// <param name="_position"></param>
+        public void SetPosition( Vector3 _position)
+        {
+            this.transform.position = _position;
+        }
+
         private bool Is2DSound(SOUND_CATEGORY _type)
         {
             switch( _type )

@@ -130,17 +130,22 @@ namespace CovaTech.UnitySound
         // IBgmPlayer 
         //------------------------------------------------------------------
         #region  ===== IBgmPlayer =====
+
         /// <summary>
         /// BGM 再生
         /// </summary>
-        /// <param name="_bgmId">BGM ID</param>
-        /// <param name="_volume">volume [0, 1]</param>
-        /// <param name="_isLoop">Is LoopSound?</param>
-        /// <param name="_token"> token for Cancel</param>
-        /// <returns></returns>
-        async UniTask<int> IBgmPlayer.PlayBgm( int _bgmId, float _volume, bool _isLoop ,CancellationToken _token)
+        /// <param name="_param">BGM 再生に必要なパラメータ</param>
+        /// <param name="_token">キャンセル用トークン</param>
+        /// <returns>ハンドラ</returns>
+        async UniTask<int> IBgmPlayer.PlayBgm( BgmParam _param, CancellationToken _token)
         {
-            int handler = await (this as IBgmPlayer).PrewarmBGM( _bgmId, _isLoop, _token);
+            Debug.Assert( _param.IsValid() );
+            if( !_param.IsValid() )
+            {
+                return SoundConsts.INVALID_HANDLER; 
+            }
+
+            int handler = await (this as IBgmPlayer).PrewarmBGM( _param, _token);
             if( handler == SoundConsts.INVALID_HANDLER )
             {
                 return handler;
@@ -152,7 +157,7 @@ namespace CovaTech.UnitySound
                 return SoundConsts.INVALID_HANDLER;
             }
 
-            item.Play( _volume);
+            item.Play( _param.Volume);
             return handler;
         }
 
@@ -181,11 +186,10 @@ namespace CovaTech.UnitySound
         /// <summary>
         /// SoundItem で再生準備フェーズまでの事前準備を行う
         /// </summary>
-        /// <param name="_bgmId"></param>
-        /// <param name="_isLoop"></param>
+        /// <param name="_param">BGM 再生に必要なパラメータ</param>
         /// <param name="_token"></param>
         /// <returns></returns>
-        async UniTask<int> IBgmPlayer.PrewarmBGM( int _bgmId, bool _isLoop, CancellationToken _token)
+        async UniTask<int> IBgmPlayer.PrewarmBGM( BgmParam _param, CancellationToken _token)
         {
             Debug.Assert( m_assetLoader != null );
             Debug.Assert( m_bgmPool != null );
@@ -193,8 +197,13 @@ namespace CovaTech.UnitySound
             {
                 return SoundConsts.INVALID_HANDLER;
             }
+            Debug.Assert( _param.IsValid() );
+            if( !_param.IsValid() )
+            {
+                return SoundConsts.INVALID_HANDLER; 
+            }
 
-            AudioClip clip = await m_assetLoader.LoadBgmClip( _bgmId, _token);
+            AudioClip clip = await m_assetLoader.LoadBgmClip( _param.BgmId, _token);
             Debug.Assert( clip != null );
             if( _token.IsCancellationRequested || clip == null )
             {
@@ -207,13 +216,15 @@ namespace CovaTech.UnitySound
             {
                 return SoundConsts.INVALID_HANDLER;
             }
-            SOUND_CATEGORY category = GetBgmCategory(_bgmId);
-            bool isReady = item.SetParam(clip, category, GetMixerGroup(category), _isLoop);
+            SOUND_CATEGORY category = GetBgmCategory(_param.BgmId);
+            bool isReady = item.SetParam(clip, category, GetMixerGroup(category), _param.IsLoop);
             if (!isReady)
             {
                 item.SetDisable();
                 return SoundConsts.INVALID_HANDLER;
             }
+
+            item.SetPosition( _param.Position );
             return item.GetHandler();
         }
 
