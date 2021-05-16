@@ -1,3 +1,25 @@
+<!-- 
+Template
+
+# vX.Y.Z
+## Feature
+- 
+
+## Bugfix
+- Nothing to be fixed.
+
+-->
+
+# v0.2.0
+## Feature
+- Add sound play limit
+- SoundItem has new ReadOnlyParameter: ClipId
+- We can check whether sound item is in object pool or not.
+
+## Bugfix
+- Nothing to be fixed.
+
+
 # v0.1.2
 ## Feature
 - Add PlayAPI w/o Prewarm
