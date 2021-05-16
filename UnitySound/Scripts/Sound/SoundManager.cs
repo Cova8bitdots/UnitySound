@@ -1,4 +1,6 @@
-﻿using System.Threading;
+﻿using System.Collections.Generic;
+using System.Linq;
+using System.Threading;
 using UnityEngine;
 using UnityEngine.Audio;
 
@@ -14,6 +16,14 @@ namespace CovaTech.UnitySound
     /// </summary>
     public class SoundManager : MonoBehaviour, IAudioPlayer, IVolumeController, IMixerEffectController
     {
+        /// <summary>
+        /// 再生情報保持用クラス
+        /// </summary>
+        private class PlayLog
+        {
+            public int SoundId;
+            public float LastPlayedAt;
+        }
         //------------------------------------------------------------------
         // 定数関連
         //------------------------------------------------------------------
@@ -22,6 +32,7 @@ namespace CovaTech.UnitySound
         private static readonly string SE_ITEM_NAME_PREFIX = "SE_";
         private static readonly string VOICE_ITEM_NAME_PREFIX = "VOICE_";
 
+        private const int DEFAULT_CAPACITY = 30;
         #endregion //) ===== CONSTS =====
 
         //------------------------------------------------------------------
@@ -39,6 +50,11 @@ namespace CovaTech.UnitySound
         [SerializeField, Tooltip("オブジェクトプールで管理するアイテム")]
         private SoundItem m_soundItemsPrefab = null;
 
+        [Header("SoundConfig")]
+        [SerializeField, Tooltip("SEの再生間隔[sec]")] private float m_sePlayInterval = 0.15f;
+        private Dictionary<int, PlayLog> sePlayDict = new Dictionary<int, PlayLog>(DEFAULT_CAPACITY);
+
+        
         /* 各モジュール */
         private IVolumeController m_volumeCtrl = null;
         private SoundObjectPool m_bgmPool = null;
@@ -370,6 +386,12 @@ namespace CovaTech.UnitySound
                 return SoundConsts.INVALID_HANDLER;
             }
 
+            // 同時発音数チェック
+            if (!IsPlayableSe( _param.SeId))
+            {
+                Debug.LogWarning($"[Sound] You cannot play se_{_param.SeId:D6} by SoundLimit");
+                return SoundConsts.INVALID_HANDLER;
+            }
             var item = m_sePool.Rent();
             Debug.Assert(item != null);
             if (item == null)
@@ -383,9 +405,8 @@ namespace CovaTech.UnitySound
                 item.SetDisable();
                 return SoundConsts.INVALID_HANDLER;
             }
-
             item.SetPosition( _param.Position );
-
+            
             return item.GetHandler();
         }
 
@@ -415,6 +436,57 @@ namespace CovaTech.UnitySound
                 return SOUND_CATEGORY.JINGLE;
             }
         }
+
+
+        /// <summary>
+        /// 再生可能かどうかチェック
+        /// </summary>
+        /// <param name="item"></param>
+        /// <returns></returns>
+        private bool IsPlayableSe(int _clipId )
+        {
+            if (_clipId == SoundConsts.INVALID_CLIP_ID)
+            {
+                return false;
+            }
+
+            /* 同一音源の再生個数チェック */
+            var category = GetSeCategory(_clipId);
+            var seItems = m_sePool?.GetItems(category);
+            if (seItems.IsNullOrEmpty())
+            {
+                return false;
+            }
+
+            int playCount = seItems.Where(se => se.IsUsed() && se.IsPlaying).Count(se => se.CurrentClipId == _clipId);
+            if (playCount > SoundConsts.DEFAULT_SAME_SE_PLAY_LIMIT_COUNT)
+            {
+                return false;
+            }
+
+            float currentTime = Time.time;
+            /* 前回からの再生時刻チェック */
+            if (!sePlayDict.TryGetValue(_clipId, out PlayLog info))
+            {
+                // 新規
+                info = new PlayLog();
+                info.SoundId = _clipId;
+                info.LastPlayedAt = currentTime;
+                sePlayDict.Add(info.SoundId, info);
+                return true;
+            }
+
+            /* 一定時間すぎてたらOK */
+            if (currentTime - info.LastPlayedAt > m_sePlayInterval)
+            {
+                info.LastPlayedAt = currentTime;
+                sePlayDict[_clipId] = info;
+                return true;
+            } 
+            
+            return false;
+        }
+
         #endregion //) ===== ISePlayer =====
 
         /// <summary>
