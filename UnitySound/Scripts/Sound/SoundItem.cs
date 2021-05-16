@@ -49,10 +49,17 @@ namespace CovaTech.UnitySound
         // Item管理用ID
         private int m_itemId = 0;
 
+        private int m_currentClipId = SoundConsts.INVALID_CLIP_ID;
+        /// <summary>
+        /// 現在設定しているClip情報
+        /// </summary>
+        public int CurrentClipId => m_currentClipId;
+        
         // このアイテムの管理人
         private SoundObjectPool m_poolManager = null;
 
         public float CurrentVolume => CurrentState == SOUND_STATE.STOP ? 0.0f : m_source.volume;
+        public float ClipLength => m_source?.clip?.length ?? 0.0f;
 
 
         private ReactiveProperty<SOUND_STATE> m_currentState = new ReactiveProperty<SOUND_STATE>( SOUND_STATE.UNDEFINED);
@@ -101,7 +108,7 @@ namespace CovaTech.UnitySound
             SetNextState(SOUND_STATE.IDLE);
         }
 
-        public bool SetParam(AudioClip _clip, SOUND_CATEGORY _type, AudioMixerGroup _mixerGroup, bool _isLoop = false)
+        public bool SetParam(AudioClip _clip, int _clipId, SOUND_CATEGORY _type, AudioMixerGroup _mixerGroup, bool _isLoop = false)
         {
             Debug.Assert(_clip != null);
             if( _clip == null )
@@ -116,6 +123,7 @@ namespace CovaTech.UnitySound
             {
                 m_source.spatialBlend = 1.0f;
             }
+            m_currentClipId = _clipId;
             m_source.clip = _clip;
             m_source.loop = _isLoop;
             m_source.volume = 0.0f;
@@ -175,17 +183,9 @@ namespace CovaTech.UnitySound
             }
             SetNextState(SOUND_STATE.PLAYING);
             
-            if ( _fadeDuration > 0.0f )
-            {
-                m_source.Play();
-                FadeIn(_fadeDuration, 0.0f, _volume).Forget(e => Debug.LogError(e.Message));
-            }
-            else
-            {
-                m_source.volume = _volume;
-                m_source.Play();
-            }
-
+            // 再生要求
+            InternalPlay(_volume, _fadeDuration);
+            
             // OneShot の場合は終了をチェックする
             if (!m_source.loop)
             {
@@ -194,8 +194,23 @@ namespace CovaTech.UnitySound
                 .Where(_ => !IsPaused && !IsPlaying )
                 .Subscribe(_ =>
                 {
-                    Stop(_isForceStop: true, _token: new CancellationToken() ).Forget(e => Debug.LogError(e.Message));
+                    Stop(_isForceStop: true, _token:this.GetCancellationTokenOnDestroy()).Forget(e => Debug.LogError(e.Message));
                 }).AddTo(m_disposable);
+            }
+        }
+        private void InternalPlay(float _volume, float _fadeDuration = 0.0f)
+        {
+            if (m_source == null)
+            {
+                return;
+            }
+            bool isFadeIn = _fadeDuration > 0.0f;
+            m_source.volume = isFadeIn ? 0.0f : _volume;
+            m_source.Play();
+
+            if (isFadeIn)
+            {
+                FadeIn(_fadeDuration,0.0f, _volume, this.GetCancellationTokenOnDestroy()).Forget(e => Debug.LogError(e.Message));
             }
         }
         /// <summary>
@@ -216,13 +231,13 @@ namespace CovaTech.UnitySound
             }
 
             SetNextState(SOUND_STATE.PRE_STOP);
-            await FadeOut(_fadeOutDuration, CurrentVolume, 0.0f);
+            await FadeOut(_fadeOutDuration, CurrentVolume, 0.0f, _token);
             SetNextState(SOUND_STATE.STOP);
             m_poolManager?.Return(this);
             m_disposable.Clear();
         }
 
-        public async UniTask FadeIn( float _duration, float _from, float _to)
+        public async UniTask FadeIn( float _duration, float _from, float _to,  CancellationToken _token)
         {
             if( m_source == null )
             {
@@ -231,11 +246,11 @@ namespace CovaTech.UnitySound
             float from = Mathf.Clamp01(Mathf.Min(_from, _to));
             float to = Mathf.Clamp01(Mathf.Max(_from, _to));
 
-            await FadeCoroutine(_duration, from, to);
+            await FadeCoroutine(_duration, from, to, _token);
         }
 
 
-        public async UniTask FadeOut(float _duration, float _from, float _to)
+        public async UniTask FadeOut(float _duration, float _from, float _to,  CancellationToken _token)
         {
             if (m_source == null)
             {
@@ -248,24 +263,34 @@ namespace CovaTech.UnitySound
                 m_source.volume = to;
                 return;
             }
-            await FadeCoroutine(_duration, from, to);
+
+            try
+            {
+                await FadeCoroutine(_duration, from, to, _token);
+            }
+            catch (Exception e)
+            {
+                Debug.LogError(e.Message);
+                throw;
+            }
         }
 
-        protected IEnumerator FadeCoroutine( float _duration, float _from, float _to)
+        protected async UniTask FadeCoroutine( float _duration, float _from, float _to,  CancellationToken _token)
         {
             if( m_source == null )
             {
-                yield break;
+                return;
             }
             if (_duration <= 0.0f)
             {
                 m_source.volume = _to;
-                yield break;
+                return;
             }
             m_isFading = true;
             for (float t = 0; t < _duration; t+= Time.deltaTime)
             {
                 m_source.volume = Mathf.Lerp(_from, _to, t / _duration);
+                await UniTask.DelayFrame(1, cancellationToken:_token);
             }
             m_source.volume = _to;
             m_isFading = false;
@@ -297,6 +322,11 @@ namespace CovaTech.UnitySound
         /// </summary>
         /// <returns></returns>
         public bool IsUsed() { return CurrentState == SOUND_STATE.PRE_PLAY || CurrentState == SOUND_STATE.PLAYING || CurrentState == SOUND_STATE.PRE_STOP ; }
+
+        /// <summary>
+        /// Queueに存在するかどうか
+        /// </summary>
+        public bool InQueue => m_poolManager?.InQueue(this) ?? false;
 
         /// <summary>
         /// Item の有効化

@@ -12,6 +12,7 @@ namespace CovaTech.UnitySound
         //------------------------------------------------------------------
         #region  ===== GENERAL =====
         public const int INVALID_HANDLER = -1;
+        public const int INVALID_CLIP_ID = -1;
 
         // デフォルトの音量[deg]
         public const float DEFAULT_VOLUME = 1.0f;
