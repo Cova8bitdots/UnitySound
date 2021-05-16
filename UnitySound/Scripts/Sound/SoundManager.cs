@@ -55,6 +55,8 @@ namespace CovaTech.UnitySound
         private Dictionary<int, PlayLog> sePlayDict = new Dictionary<int, PlayLog>(DEFAULT_CAPACITY);
 
         
+        private int m_currentBgmHandler = SoundConsts.INVALID_HANDLER;
+
         /* 各モジュール */
         private IVolumeController m_volumeCtrl = null;
         private SoundObjectPool m_bgmPool = null;
@@ -174,6 +176,7 @@ namespace CovaTech.UnitySound
         /// <returns>ハンドラ</returns>
         int IBgmPlayer.PlayBgm( int _handler, float _volume)
         {
+            IBgmPlayer player = this;
             if( _handler == SoundConsts.INVALID_HANDLER )
             {
                 return _handler;
@@ -184,8 +187,13 @@ namespace CovaTech.UnitySound
             {
                 return SoundConsts.INVALID_HANDLER;
             }
-
+            // もしBGMが生成中なら停止処理
+            if (m_currentBgmHandler != SoundConsts.INVALID_HANDLER)
+            {
+                player.StopBGM(m_currentBgmHandler, false, this.GetCancellationTokenOnDestroy()).Forget( e=> Debug.LogError("[Sound] "+e.Message));
+            }
             item.Play(_volume);
+            m_currentBgmHandler = _handler;
             return _handler;
         }
 
@@ -231,6 +239,12 @@ namespace CovaTech.UnitySound
                 return SoundConsts.INVALID_HANDLER; 
             }
 
+            //すでに鳴らしているものがある状態かつ、同一音源の指定だと弾く。
+            if (!IsPlayableBgmId(_param.BgmId))
+            {
+                return SoundConsts.INVALID_HANDLER;
+            }
+
             AudioClip clip = await m_assetLoader.LoadBgmClip( _param.BgmId, _token);
             Debug.Assert( clip != null );
             if( _token.IsCancellationRequested || clip == null )
@@ -268,6 +282,34 @@ namespace CovaTech.UnitySound
                 return SOUND_CATEGORY.DIEGETIC_BGM;
             }
         }
+
+        /// <summary>
+        /// 指定BGMIDが再生可能かチェック
+        /// </summary>
+        /// <param name="bgmId"></param>
+        /// <returns></returns>
+        private bool IsPlayableBgmId(int bgmId)
+        {
+            if (m_currentBgmHandler == SoundConsts.INVALID_HANDLER)
+            {
+                return true;
+            }
+
+            var item = m_bgmPool.GetItem(m_currentBgmHandler);
+            // 多分ないけどワンチャンHandlerの更新漏れ説がある
+            if (item == null)
+            {
+                return true;
+            }
+
+            if (item.CurrentClipId != bgmId)
+            {
+                return true;
+            }
+            Debug.LogWarning($"[Sound] Same BgmID Play Request. This request is Rejected.");
+            return false;
+        }
+
         #endregion //) ===== IBgmPlayer =====
 
 
