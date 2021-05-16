@@ -139,14 +139,15 @@ namespace CovaTech.UnitySound
         /// <returns>ハンドラ</returns>
         async UniTask<int> IBgmPlayer.PlayBgm( BgmParam _param, CancellationToken _token)
         {
+            IBgmPlayer player = this;
             Debug.Assert( _param.IsValid() );
             if( !_param.IsValid() )
             {
                 return SoundConsts.INVALID_HANDLER; 
             }
 
-            int handler = await (this as IBgmPlayer).PrewarmBGM( _param, _token);
-            return (this as IBgmPlayer).PlayBgm( handler, _param.Volume);
+            int handler = await player.PrewarmBGM( _param, _token);
+            return player.PlayBgm( handler, _param.Volume);
         }
 
         /// <summary>
@@ -228,7 +229,7 @@ namespace CovaTech.UnitySound
                 return SoundConsts.INVALID_HANDLER;
             }
             SOUND_CATEGORY category = GetBgmCategory(_param.BgmId);
-            bool isReady = item.SetParam(clip, category, GetMixerGroup(category), _param.IsLoop);
+            bool isReady = item.SetParam(clip, _clipId:_param.BgmId, category, GetMixerGroup(category), _param.IsLoop);
             if (!isReady)
             {
                 item.SetDisable();
@@ -266,6 +267,7 @@ namespace CovaTech.UnitySound
         /// <returns></returns>
         async UniTask<int> ISePlayer.PlaySe( SeParam _param, CancellationToken _token)
         {
+            ISePlayer player = this;
             Debug.Assert( _param.IsValid() );
             if( !_param.IsValid() )
             {
@@ -276,8 +278,8 @@ namespace CovaTech.UnitySound
             {
                 return SoundConsts.INVALID_HANDLER;
             }
-            int handler = await (this as ISePlayer).PrewarmSE( _param, _token);
-            return (this as ISePlayer).PlaySe( handler, _param.Volume);
+            int handler = await player.PrewarmSE( _param, _token);
+            return player.PlaySe( handler, _param.Volume);
         }
 
         /// <summary>
@@ -375,7 +377,7 @@ namespace CovaTech.UnitySound
                 return SoundConsts.INVALID_HANDLER;
             }
             SOUND_CATEGORY category = GetSeCategory(_param.SeId);
-            bool isReady = item.SetParam(clip, category, GetMixerGroup(category), _param.IsLoop);
+            bool isReady = item.SetParam(clip, _clipId:_param.SeId, category, GetMixerGroup(category), _param.IsLoop);
             if (!isReady)
             {
                 item.SetDisable();

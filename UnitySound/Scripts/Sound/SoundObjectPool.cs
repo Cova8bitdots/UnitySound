@@ -133,5 +133,10 @@ namespace CovaTech.UnitySound
                 m_allItems[i]?.Dispose();
             }
         }
+        
+        public bool InQueue( SoundItem item)
+        {
+            return m_pool?.Contains(item) ?? false;
+        }
     }
 }
